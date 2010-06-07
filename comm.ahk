@@ -13,19 +13,6 @@ IRCpath := "C:\Programs\mIRC\mirc.exe"
 
 ; ###### SCRIPT START ######
 
-;Function to get client executable name given a path
-GetExe(Fullpath){
-	FoundPos := RegExMatch(Fullpath, "[^\\]*$", ExeName)  ;RegExMatch normally returns only position. By adding variable name inside function call we can get the actual value found as well.
-	return %ExeName%
-}
-
-;Function to get client install path given a fully qualified path
-GetPath(Fullpath){
-	;Shows how much I understand RegEx.Getting Install path by lopping off everything after the last "\" character aka the opposite of what I do in the GetExe function.
-	Path := RegExReplace(Fullpath, "[^\\]*$", "")  
-	return %Path%
-}
-
 ;Get client executable names
 IMClient := GetExe(IMPath)
 TwitClient := GetExe(TwitPath)
@@ -36,14 +23,27 @@ IMProgPath := GetPath(IMPath)
 TwitProgPath := GetPath(TwitPath)
 IRCProgPath := GetPath(IRCPath)
 
-CheckApps(){
+;Function to get client executable name given a path
+GetExe(Fullpath){
+	; Way simpler call to SplitPath function courtesy of the fine folks at the AHK forums.
+	SplitPath, Fullpath, ExeName
+	return %ExeName%
+}
+
+;Function to get client install path given a fully qualified path
+GetPath(Fullpath){
+	SplitPath, Fullpath,, Path
+	return %Path%
+}
+
+;CheckApps(){
 
 ;Now get all process PIDs and check if all three apps are running
 ;For some reason that eludes me, process checking cannot be done using a function
 ;So we have to duplicate the code to get PIDs for every app, every time :rolleyes:
-global IMClient
-global TwitClient
-global IRCClient
+;global IMClient
+;global TwitClient
+;global IRCClient
 
 Process,Exist,%IMClient%
 IMPID = %ErrorLevel%
@@ -53,20 +53,20 @@ Process,Exist,%IRCClient%
 IRCPID = %ErrorLevel%
 
 If (%IMPID% <> 0) && (%TwitPID% <> 0) && (%IRCPID% <> 0)
-{
+	{
 	;Everything's running. What are we still doing here?
 	MsgBox, 4096, , Everything is fine.
 	} else {
 	StartApps()
-}
-
-;CheckApps() ends here
-}
+	}
+;return 0
+;}
 
 StartApps(){
 ;The script allows for any one of the 3 clients to be running and still be called.
 ;In that situation, the script will launch only those clients that are not running.
-	;Check if IM is running else launch IM
+
+;Check if IM is running else launch IM
 	global IMpath
 	global IMClient
 	Process,Exist,%IMClient%
@@ -79,7 +79,7 @@ StartApps(){
 			MsgBox, 4096, , The IM Client %IMClient% could not be launched.`nCheck your path %IMpath%
 			}
 		}
-	;Check if Twitter is running else launch Twitter
+;Check if Twitter is running else launch Twitter
 		global Twitpath
 		global TwitClient
 		Process,Exist,%TwitClient%
@@ -108,3 +108,4 @@ StartApps(){
 			
 ;StartApps() ends here
 }
+
